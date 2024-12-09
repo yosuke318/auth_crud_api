@@ -49,14 +49,18 @@ class DatabaseHandler:
             print(f"Key error: {e}")
             return {'error': 'Invalid event structure'}
 
-    def get_user_info(self, user_id: str) -> Dict[str, Any]:
+    def get_user_info(self, event: Dict[str, Any]) -> Dict[str, Any]:
         """
         user_idを使用してMySQLDBからデータ取得
-        :param user_id:
-        :type user_id:
+        :param event:
+        :type Dict:
         :return: ユーザー情報
         :rtype: Dict
         """
+        user_id = self.extract_user_id(event)
+        if 'error' in user_id:
+            return user_id
+
         try:
             connection = self.connect()
             with connection:
