@@ -1,2 +1,4 @@
 from .database_handler import DatabaseHandler
-__all__ = ['DatabaseHandler']
+from .auth_api import AuthApi
+
+__all__ = ['DatabaseHandler', 'AuthApi']
