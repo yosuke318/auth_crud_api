@@ -7,6 +7,20 @@ from dataclasses import dataclass
 load_dotenv()
 
 
+class DatabaseError(BaseException):
+    def __init__(self, message: str, original_error: Exception = None):
+        self.original_error = original_error
+        super().__init__(message)
+
+
+class DatabaseConnectionError(DatabaseError):
+    pass
+
+
+class DatabaseQueryError(DatabaseError):
+    pass
+
+
 @dataclass
 class DatabaseConfig:
     db_host: str
@@ -26,7 +40,7 @@ class DatabaseConfig:
 
 
 # データベース操作を扱うクラス
-class DatabaseHandler:
+class RDBCrudHandler:
     def __init__(self, config: DatabaseConfig = DatabaseConfig.from_env()):
         self.db_host = config.db_host
         self.db_user = config.db_user
