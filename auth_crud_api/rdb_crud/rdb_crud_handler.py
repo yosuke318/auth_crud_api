@@ -64,8 +64,7 @@ class RDBCrudHandler:
     def show_env_values(self):
         print(self.db_host)
 
-    @staticmethod
-    def extract_user_id(event: Dict[str, Any]) -> str:
+    def _extract_user_id(event: Dict[str, Any]) -> str:
         """
         claimからuser_idを抽出
         :param event:
@@ -90,7 +89,7 @@ class RDBCrudHandler:
         :return: ユーザー情報
         :rtype: Dict
         """
-        user_id = self.extract_user_id(event)
+        user_id = self._extract_user_id(event)
         if 'error' in user_id:
             return user_id
 
