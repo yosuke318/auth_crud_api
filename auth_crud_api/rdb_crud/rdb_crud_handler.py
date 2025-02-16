@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 from typing import Dict, Any
 import pymysql
 from dataclasses import dataclass
+from contextlib import contextmanager
 
 load_dotenv()
 
@@ -38,7 +39,6 @@ class DatabaseConfig:
         )
 
 
-
 # データベース操作を扱うクラス
 class RDBCrudHandler:
     def __init__(self, config: DatabaseConfig = DatabaseConfig.from_env()):
@@ -46,8 +46,9 @@ class RDBCrudHandler:
         self.db_user = config.db_user
         self.db_password = config.db_password
         self.db_name = config.db_name
+        self.connection = self._connect()
 
-    def connect(self):
+    def _connect(self):
         try:
             connection = pymysql.connect(
                 host=self.db_host,
@@ -63,6 +64,29 @@ class RDBCrudHandler:
 
     def show_env_values(self):
         print(self.db_host)
+
+    def _execute_query(self, sql: str, params: tuple = None):
+        try:
+            with self._manage_connection():
+                with self.connection.cursor() as cursor:
+                    result = cursor.execute(sql, params)
+                    self.connection.commit()
+                    return result
+        except pymysql.MySQLError as e:
+            print(f"execute query error: {e}")
+            return {'error': str(e)}
+
+    @contextmanager
+    def _manage_connection(self):
+        try:
+            yield
+        finally:
+            try:
+                if self.connection is not None and self.connection.open:
+                    self.connection.close()
+            except pymysql.MySQLError as e:
+                print(f"Failed to close connection: {e}")
+                return {'error': str(e)}
 
     def _extract_user_id(event: Dict[str, Any]) -> str:
         """
@@ -94,9 +118,8 @@ class RDBCrudHandler:
             return user_id
 
         try:
-            connection = self.connect()
-            with connection:
-                with connection.cursor() as cursor:
+            with self.connection:
+                with self.connection.cursor() as cursor:
                     sql = "SELECT * FROM users WHERE user_id = %s"
                     cursor.execute(sql, (user_id,))
                     result = cursor.fetchone()
