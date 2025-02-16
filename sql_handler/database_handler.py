@@ -2,17 +2,36 @@ import os
 from dotenv import load_dotenv
 from typing import Dict, Any
 import pymysql
+from dataclasses import dataclass
 
 load_dotenv()
 
 
+@dataclass
+class DatabaseConfig:
+    db_host: str
+    db_user: str
+    db_password: str
+    db_name: str
+
+    @classmethod
+    def from_env(cls) -> "DatabaseConfig":
+        return cls(
+            db_host=os.getenv('DB_HOST'),
+            db_user=os.getenv('DB_USER'),
+            db_password=os.getenv('DB_PASSWORD'),
+            db_name=os.getenv('DB_NAME')
+        )
+
+
+
 # データベース操作を扱うクラス
 class DatabaseHandler:
-    def __init__(self):
-        self.db_host = os.getenv('DB_HOST')
-        self.db_user = os.getenv('DB_USER')
-        self.db_password = os.getenv('DB_PASSWORD')
-        self.db_name = os.getenv('DB_NAME')
+    def __init__(self, config: DatabaseConfig = DatabaseConfig.from_env()):
+        self.db_host = config.db_host
+        self.db_user = config.db_user
+        self.db_password = config.db_password
+        self.db_name = config.db_name
 
     def connect(self):
         try:
